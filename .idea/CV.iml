@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp10/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp3/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp4/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp5/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp6/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp7/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp8/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Experiments/Exp9/data" />
+      <excludeFolder url="file://$MODULE_DIR$/Projects/1_hybrid/pictures" />
+      <excludeFolder url="file://$MODULE_DIR$/Projects/2_quilting/pictures" />
+      <excludeFolder url="file://$MODULE_DIR$/Projects/3_gradient-domain_fusion/pictures" />
+    </content>
+    <orderEntry type="jdk" jdkName="C:\ProgramData\miniconda3\envs\CV" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

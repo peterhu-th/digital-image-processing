@@ -1,0 +1,7 @@
+# images
+*.png
+*.tif
+*.jpg
+
+Experiments/*/data/
+Projects/*/pictures/
