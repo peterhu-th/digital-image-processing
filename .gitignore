@@ -5,3 +5,21 @@
 
 Experiments/*/data/
 Projects/*/pictures/
+
+# cache
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+
+# envs
+venv/
+env/
+.conda/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
