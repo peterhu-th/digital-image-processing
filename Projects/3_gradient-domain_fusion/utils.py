@@ -115,6 +115,4 @@ def specify_mask(img):
 
 def get_mask(ys, xs, img):
     mask = poly2mask(ys, xs, img.shape[:2]).astype(int)
-    fig = plt.figure()
-    plt.imshow(mask, cmap='gray')
     return mask

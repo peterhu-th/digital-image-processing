@@ -164,6 +164,6 @@ def run_part2_color_shift():
 
 if __name__ == '__main__':
     run_part1()
-    # run_part2_contrast()
-    # run_part2_color()
-    # run_part2_color_shift()
+    run_part2_contrast()
+    run_part2_color()
+    run_part2_color_shift()

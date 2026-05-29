@@ -1,0 +1,77 @@
+Overview
+In this project, you will experiment with interest points, image projection, and videos. You will manipulate videos by applying several transformations frame by frame. In doing so, you will explore correspondence using interest points, robust matching with RANSAC, homography, and background subtraction. You will also apply these techniques to videos by projecting and manipulating individual frames. You can also investigate cylindrical and spherical projection and other extensions of photo stitching and homography as bells and whistles.
+
+The starter package includes an input video, extracted frames, and utils for extracting frames and creating videos from saved frames or numpy arrays.
+
+
+Part 1: Stitch two key frames [20 pts]
+Your main project is on a video from 10 years ago in Jaipur, Northern India. We use the first 30 seconds that has 900 frames. Both the video and the decomposed jpg frames are included in the starter kit. We use frame number 450 as the reference frame. That means we map all other frames onto the "plane" of this frame using a homography transformation. This involves: (1) computing homography H between frame 450 and each other frame; (2) projecting each frame onto the same surface; (3) blend the surfaces.
+
+To stitch two overlapping video frames together, you first need to map one image plane to the other. To do that, you need to identify keypoints in both images, match between them to find point correspondences, and compute a projective transformation, called a homography that maps from one set of points to the other. Once you have recovered the homography, you can use it to project all frames onto the same coordinate space, and stitch them together to generate the video output. The starter notebook includes most of auto_homography that performs the steps of extracting SIFT features, matching, and setting up RANSAC. You need to provide the parameters, the score function, and the homography estimation function. You may also want to experiment with the threshold used for RANSAC and/or recompute the homography based on all inliers after RANSAC.
+
+Check that your homography is correct by plotting four points that form a square in frame 270 and their projections in each image, like this:
+
+corr_b corr_a
+Include those images in your project report. Note that cv2.warpPerspective() takes output sizes, not coordinates, as input, i.e.: img_warped = cv2.warpPerspective(img, H, (output_width, output_height))
+
+To blend your images, you need to create a canvas (a blank image) that is large enough to display the warped pixels of each original image. Then, for each pixel in the canvas, you apply your homographies to find the corresponding coordinate in source image and retrieve the color (or interpolated color). Some of the pixels in frame 270 will correspond to negative coordinates in your canvas. See the Tips document for a suggestion on how to deal with this.
+
+We provide a very simple blending function in utils.py that replaces zero pixels in one image with non-zero pixels in another image of the same size. Better blending methods are bells and whistles. In this part you will map the frame number 270 onto the reference image and produce an output like the following.
+
+merge_image
+
+The images and videos in this project page are down-sampled but you need to produce a full resolution version.
+
+
+Part 2: Panorama using five key frames [15 pts]
+In this part you will produce a panorama using five key frames. Let's determine frames [90, 270, 450, 630, 810] as key frames (in this numbering 1 is the first frame). The goal is to map all the five frames onto the plane corresponding to frame 450 (the reference frame). For the frames 270 and 630 you can follow the instructions in part 1.
+
+Mapping frame 90 to frame 450 direclty is difficult because they share very little area. Therefore you need to perform a two stage mapping by using frame 270 as a guide. Compute one projection from 90 to 270 and one from 270 to 450 and multiply the two homography matrices (order of multiplication matters). This produces a projection from 90 to 450 even though these frames have very little area in common.
+
+For this stage, include your output panorama in your report.
+
+
+Part 3: Map the video to the reference plane [15 pts]
+In this part you will produce a video sequence by projecting all frames onto the plane corresponding to the reference frame 450. For those frames that have small or no overlap with the reference frame you need to first map them onto the closest key frame. You can produce a direct homography between each frame and the reference frame by multiplying the two projection matrices. For this part output a video like the following:
+
+
+Part 4: Create background panorama [15 pts]
+
+In this part you will remove moving objects from the video and create a background panorama that should incorporate pixels from all the frames.
+
+In the video you produced in part 3, each pixel appears in several frames. You need to estimate which of the many colors correspond to the background. We take advantage of the fact that the background color is fixed while the foreground color changes frequently (because foreground moves). For example, a pixel on the street has a gray color. It can become red, green, white or black each for a short period of time. However, it appears gray more than any other color.
+
+For each pixel in the sequence of part 3, determine all valid colors (colors that come from all frames that overlap that pixel). You can experiment with different methods for determining the background color of each pixel, as discussed in class. Perform the same procedure for all pixels and generate output. The output should be a completed panorama showing only pixels of background or non-moving objects.
+
+As an example, to the right is a central portion of the background image produced by my code.
+
+
+Part 5: Create background movie [10 pts]
+Map the background panorama to the movie coordinates. For each frame of the movie, say frame 1, you need to estimate a projection from the panorama to frame 1. Note, you should be able to re-use the homographies that you estimated in Part 3. Perform this for all frames and generate a movie that looks like the input movie but shows only background pixels. All moving objects that belong to the foreground must be removed.
+
+
+Part 6: Create foreground movie [15 pts]
+In the background video, moving objects are removed. In each frame, those pixels that are different enough than the background color are considered foreground. For each frame determine foreground pixels and generate a movie that only includes foreground pixels.
+
+Bells and whistles
+Insert an unexpected object in the video [15 pts]
+Add an unexpected object in the movie. Label the pixels in each frame as foreground or background. An inserted object must go below foreground and above background. Also note that an inserted object must appear fixed on the ground. Create a video that looks like original video with the tiny difference that some objects are inserted in the video.
+
+Process one of your own videos [up to 20 points]
+You can apply the seven parts of the main project on one of your own videos. You get 20 points for processing one additional video, which must be a video that you captured. You get full points if you produce the results from parts 4-6 for your video. Note that the camera position should not move in space but it can rotate. You also need to have some moving objects in the camera. Try to use your creativity to deliver something cool.
+
+Smooth blending [up to 30 pts]
+
+In part 2, you performed image tiling. In order to generate a good looking panorama, you need to select a seam line to cut through for each pair of individual images. Because the objects move the cut must be smart enough to avoid cutting through objects. You can also use Laplacian blending. You are free to use the code from your previous projects.
+
+Improve background/foreground videos [up to 40 pts]
+Your background image and foreground videos won't be perfect if you use a very simple method to determine background color and to select foreground pixels. That's ok for the core project, but you could try to do better. One solution is to model the color distributions of each background pixel and all the foreground pixels. E.g. each background pixel has a Gaussian distribution with its own mean and a small variance, and all the foreground pixels are modeled with a histogram or mixture of Gaussians. Then, you can solve for the probability that the pixel in each frame belongs to foreground and background and use that to create your foreground/background videos. Your final result will be new foreground and background videos.
+
+Generate a wide video [10 pts]
+In Part 5 you created a background movie by projecting back the panorama background to each frame plane. If you map a wider area you will get a wider background movie. You can use this background movie to extend the borders of your video and make it wider. The extended video must be at least 50% wider. You can keep the same height.
+
+Remove camera shake [20 pts]
+You can track camera orientation using the homography matrices for each frame. This allows you to estimate and remove camera shake. Please note that camera shake removal for moving cameras is a more difficult problem and is an active area of research in computational photography. One idea (which we haven't tried and might not work) is to assume that camera parameters change smoothly and obtain a temporally smoothed estimate for each camera parameter. A better but more complicated method would be to solve for camera angle and focal length and smooth estimates for those parameters.
+
+Make the street more crowded or a similar idea [15 pts]
+You can use the techniques from the first bells and whistles task to add more people to the street. You can sample people from other frames that are a few seconds apart. You can alternatively show two copies of yourself in a video. Please note that your camera needs some rotation.
