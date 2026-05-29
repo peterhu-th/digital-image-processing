@@ -2,13 +2,10 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import random
 from utils import cut
 
 
-# ==========================================
-# Part I: Randomly Sampled Texture
-# ==========================================
+# Randomly Sampled Texture
 def quilt_random(sample, out_size, patch_size):
     """
     随机采样块拼接纹理
@@ -35,9 +32,7 @@ def quilt_random(sample, out_size, patch_size):
     return out_img
 
 
-# ==========================================
-# 辅助函数 (Part II, III, IV 共用)
-# ==========================================
+# 辅助函数
 def ssd_patch(template, mask, sample):
     """
     利用滤波操作高效计算掩码模板的 SSD (平方差和)
@@ -83,9 +78,7 @@ def choose_sample(cost_img, tol, patch_size):
     return y + half_p, x + half_p
 
 
-# ==========================================
-# Part II: Overlapping Patches
-# ==========================================
+# Overlapping Patches
 def quilt_simple(sample, out_size, patch_size, overlap, tol):
     """
     基于重叠区域 SSD 的纹理拼接
@@ -130,9 +123,7 @@ def quilt_simple(sample, out_size, patch_size, overlap, tol):
     return out_img
 
 
-# ==========================================
-# Part III: Seam Finding
-# ==========================================
+# Seam Finding
 def quilt_cut(sample, out_size, patch_size, overlap, tol):
     """
     结合接缝寻找消除拼接伪影
@@ -166,7 +157,6 @@ def quilt_cut(sample, out_size, patch_size, overlap, tol):
             y, x = cy - half_p, cx - half_p
             patch = sample[y:y + patch_size, x:x + patch_size].copy()
 
-            # --- Seam Finding 核心逻辑 ---
             # 默认全选新 patch (全 1)
             seam_mask = np.ones((patch_size, patch_size), dtype=np.int32)
 
@@ -194,9 +184,7 @@ def quilt_cut(sample, out_size, patch_size, overlap, tol):
     return out_img
 
 
-# ==========================================
-# Part IV: Texture Transfer
-# ==========================================
+# Texture Transfer
 def texture_transfer(sample, patch_size, overlap, tol, guidance_im, alpha):
     """
     根据目标引导图进行纹理迁移
@@ -256,56 +244,73 @@ def texture_transfer(sample, patch_size, overlap, tol, guidance_im, alpha):
     return out_img
 
 
+def load_image(filepath):
+    """辅助函数：加载图片并归一化"""
+    if not os.path.exists(filepath):
+        print(f"Error: 找不到 {filepath}。")
+        return None
+    img = cv2.cvtColor(cv2.imread(filepath), cv2.COLOR_BGR2RGB)
+    return img.astype(np.float32) / 255.0
+
+
+def run_part1_random(sample_img, out_size, patch_size):
+    print("Running Part I: Random Quilt...")
+    res = quilt_random(sample_img, out_size, patch_size)
+    plt.imshow(res)
+    plt.title('Random Quilt')
+    plt.show()
+    return res
+
+
+def run_part2_simple(sample_img, out_size, patch_size, overlap, tol):
+    print("Running Part II: Simple Quilt (Overlap + SSD)...")
+    res = quilt_simple(sample_img, out_size, patch_size, overlap, tol)
+    plt.imshow(res)
+    plt.title('Simple Quilt (Overlap + SSD)')
+    plt.show()
+    return res
+
+
+def run_part3_cut(sample_img, out_size, patch_size, overlap, tol):
+    print("Running Part III: Cut Quilt (Seam Finding)...")
+    res = quilt_cut(sample_img, out_size, patch_size, overlap, tol)
+    plt.imshow(res)
+    plt.title('Cut Quilt (Seam Finding)')
+    plt.show()
+    return res
+
+
+def run_part4_transfer(sample_img, guidance_img, patch_size, overlap, tol, alpha):
+    print("Running Part IV: Texture Transfer...")
+    res = texture_transfer(sample_img, patch_size, overlap, tol, guidance_img, alpha)
+    plt.imshow(res)
+    plt.title('Texture Transfer')
+    plt.show()
+    return res
+
+
 if __name__ == '__main__':
     img_dir = 'pictures'
-    sample_img_fn = os.path.join(img_dir, 'bricks_small.jpg')
+    sample_img_path = os.path.join(img_dir, 'bricks_small.jpg')
+    guidance_img_path = os.path.join(img_dir, 'feynman.tiff')
+    sample_img = load_image(sample_img_path)
 
-    if not os.path.exists(sample_img_fn):
-        print(f"Error: 找不到 {sample_img_fn}。请检查 pictures 文件夹下是否有该图片。")
-    else:
-        # OpenCV 默认读入 BGR，转为 RGB 用于 matplotlib
-        sample_img = cv2.cvtColor(cv2.imread(sample_img_fn), cv2.COLOR_BGR2RGB)
-        sample_img = sample_img.astype(np.float32) / 255.0  # 归一化处理
-
+    if sample_img is not None:
         plt.figure(figsize=(4, 4))
         plt.imshow(sample_img)
         plt.title('Original Sample')
         plt.show()
 
-        out_size = 200
-        patch_size = 25  # 使用奇数作为 patch_size
-        overlap = 11
-        tol = 3
+        OUT_SIZE = 200
+        PATCH_SIZE = 25
+        OVERLAP = 11
+        TOL = 3
 
-        # 运行 Part I
-        print("Running Part I: Random Quilting...")
-        res_random = quilt_random(sample_img, out_size, patch_size)
-        plt.imshow(res_random)
-        plt.title('Random Quilt')
-        plt.show()
+        run_part1_random(sample_img, OUT_SIZE, PATCH_SIZE)
+        run_part2_simple(sample_img, OUT_SIZE, PATCH_SIZE, OVERLAP, TOL)
+        run_part3_cut(sample_img, OUT_SIZE, PATCH_SIZE, OVERLAP, TOL)
 
-        # 运行 Part II
-        print("Running Part II: Simple Overlap Quilting...")
-        res_simple = quilt_simple(sample_img, out_size, patch_size, overlap, tol)
-        plt.imshow(res_simple)
-        plt.title('Simple Quilt (Overlap + SSD)')
-        plt.show()
-
-        # 运行 Part III
-        print("Running Part III: Seam Finding Quilting...")
-        res_cut = quilt_cut(sample_img, out_size, patch_size, overlap, tol)
-        plt.imshow(res_cut)
-        plt.title('Cut Quilt (Seam Finding)')
-        plt.show()
-
-        print("Running Part IV: Texture Transfer...")
-        guidance_img_fn = os.path.join(img_dir, 'face.jpg')
-        if os.path.exists(guidance_img_fn):
-            guidance_img = cv2.cvtColor(cv2.imread(guidance_img_fn), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-            alpha = 0.5
-            res_transfer = texture_transfer(sample_img, patch_size, overlap, tol, guidance_img, alpha)
-            plt.imshow(res_transfer)
-            plt.title('Texture Transfer')
-            plt.show()
-        else:
-            print(f"Error: 找不到引导图像 {guidance_img_fn}，跳过 Texture Transfer。")
+        guidance_img = load_image(guidance_img_path)
+        if guidance_img is not None:
+            ALPHA = 0.5
+            run_part4_transfer(sample_img, guidance_img, PATCH_SIZE, OVERLAP, TOL, ALPHA)
