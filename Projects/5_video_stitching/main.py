@@ -87,9 +87,8 @@ def auto_homography(Ia, Ib):
     return best_H
 
 
-def part1_stitch_two(im1_path, im2_path, Tr, out_size):
+def stitch_two(im1_path, im2_path, Tr, out_size, output_dir):
     """ Part 1: Stitch two key frames (Frame 270 and 450) """
-    print("\n--- Running Part 1 ---")
     im1 = cv2.imread(im1_path)
     im2 = cv2.imread(im2_path)
 
@@ -103,14 +102,14 @@ def part1_stitch_two(im1_path, im2_path, Tr, out_size):
     warp2 = cv2.warpPerspective(im2, H_proj_2, out_size)
 
     blended = blendImages(warp1, warp2)
-    cv2.imwrite("part1_stitch.jpg", blended)
-    print("Saved part1_stitch.jpg")
+    out_path = os.path.join(output_dir, "stitch.jpg")
+    cv2.imwrite(out_path, blended)
+    print("Saved stitch.jpg")
     return H_1to2
 
 
-def part2_panorama_five(img_paths, key_indices, Tr, out_size):
+def panorama_five(img_paths, key_indices, Tr, out_size, output_dir):
     """ Part 2: Panorama using five key frames """
-    print("\n--- Running Part 2 ---")
     frames = [cv2.imread(img_paths[i - 1]) for i in key_indices]
     ref_idx = 2  # 对应 frame 450 (索引为 2)
 
@@ -141,14 +140,14 @@ def part2_panorama_five(img_paths, key_indices, Tr, out_size):
         warp = cv2.warpPerspective(frames[i], H_final, out_size)
         canvas = blendImages(warp, canvas)
 
-    cv2.imwrite("part2_panorama.jpg", canvas)
-    print("Saved part2_panorama.jpg")
+    out_path = os.path.join(output_dir, "panorama.jpg")
+    cv2.imwrite(out_path, canvas)
+    print("Saved panorama.jpg")
     return H_to_ref, frames
 
 
-def part3_map_video(img_paths, ref_frame_idx, Tr, out_size):
+def map_video(img_paths, ref_frame_idx, Tr, out_size):
     """ Part 3: Map all frames to the reference plane (Simplified for memory) """
-    print("\n--- Running Part 3 (Mapping video) ---")
     # 为防止内存溢出，每隔 10 帧抽样一次，也可去掉切片 [::10]
     sample_paths = img_paths[::10]
     ref_img = cv2.imread(img_paths[ref_frame_idx - 1])
@@ -171,9 +170,8 @@ def part3_map_video(img_paths, ref_frame_idx, Tr, out_size):
     return mapped_video_np
 
 
-def part4_background_panorama(mapped_video):
+def background_panorama(mapped_video, output_dir):
     """ Part 4: Create background panorama by calculating median """
-    print("\n--- Running Part 4 ---")
     # 为了不把黑色背景（值为0）算进中位数，把 0 转成 NaN
     mapped_float = mapped_video.astype(np.float32)
     mapped_float[mapped_float == 0] = np.nan
@@ -185,14 +183,14 @@ def part4_background_panorama(mapped_video):
     # 还原成 uint8
     bg_pano = np.nan_to_num(bg_pano).astype(np.uint8)
 
-    cv2.imwrite("part4_bg_panorama.jpg", bg_pano)
-    print("Saved part4_bg_panorama.jpg")
+    out_path = os.path.join(output_dir, "bg_panorama.jpg")
+    cv2.imwrite(out_path, bg_pano)
+    print("Saved bg_panorama.jpg")
     return bg_pano
 
 
-def part5_background_movie(bg_pano, img_paths, ref_frame_idx, Tr):
+def background_movie(bg_pano, img_paths, ref_frame_idx, Tr):
     """ Part 5: Create background movie by inverse projecting panorama to frames """
-    print("\n--- Running Part 5 ---")
     ref_img = cv2.imread(img_paths[ref_frame_idx - 1])
     h, w = ref_img.shape[:2]
 
@@ -218,9 +216,8 @@ def part5_background_movie(bg_pano, img_paths, ref_frame_idx, Tr):
     return bg_movie_np, sample_paths
 
 
-def part6_foreground_movie(bg_movie, sample_paths, threshold=30):
+def foreground_movie(bg_movie, sample_paths, threshold=30):
     """ Part 6: Create foreground movie """
-    print("\n--- Running Part 6 ---")
     fg_movie = []
 
     for i in range(len(bg_movie)):
@@ -247,14 +244,17 @@ def part6_foreground_movie(bg_movie, sample_paths, threshold=30):
 
 
 def main():
-    img_dir = "pictures"
-
+    img_dir = os.path.join("resources", "images", "frames")
     img_paths = sorted(glob.glob(os.path.join(img_dir, "*.jpg")))
+
     if not img_paths:
-        print("错误：未在 pictures/ 目录下找到图片。请确保数据已就绪。")
+        print("错误：未在 resources/images/frames/ 目录下找到图片。请确保数据已就绪。")
         return
 
     print(f"Total frames found: {len(img_paths)}")
+
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
 
     projectedWidth = 1600
     projectedHeight = 500
@@ -264,31 +264,31 @@ def main():
     # 缝合两帧 (第 270 帧和第 450 帧)
     im270 = img_paths[270 - 1]
     im450 = img_paths[450 - 1]
-    part1_stitch_two(im270, im450, Tr, out_size)
+    stitch_two(im270, im450, Tr, out_size, output_dir)
 
     # 利用 5 个关键帧拼接全景图
     key_indices = [90, 270, 450, 630, 810]
-    part2_panorama_five(img_paths, key_indices, Tr, out_size)
+    panorama_five(img_paths, key_indices, Tr, out_size, output_dir)
 
     # 生成映射视频 (投影至参考帧平面)
     ref_idx = 450
-    mapped_video = part3_map_video(img_paths, ref_idx, Tr, out_size)
+    mapped_video = map_video(img_paths, ref_idx, Tr, out_size)
 
     # 提取背景全景图
     if len(mapped_video) > 0:
-        bg_pano = part4_background_panorama(mapped_video)
+        bg_pano = background_panorama(mapped_video, output_dir)
 
         # 将背景投射回视频空间生成背景视频
-        bg_movie, sample_paths = part5_background_movie(bg_pano, img_paths, ref_idx, Tr)
+        bg_movie, sample_paths = background_movie(bg_pano, img_paths, ref_idx, Tr)
 
         # 剥离出前景视频
         if len(bg_movie) > 0:
-            fg_movie = part6_foreground_movie(bg_movie, sample_paths)
-
-            # 将 np 数组写成视频文件，前提是本地配置好了 ffmpeg
-            # vidwrite_from_numpy("output_bg.mp4", bg_movie)
-            # vidwrite_from_numpy("output_fg.mp4", fg_movie)
-
+            fg_movie = foreground_movie(bg_movie, sample_paths)
+            bg_vid_path = os.path.join(output_dir, "output_bg.mp4")
+            fg_vid_path = os.path.join(output_dir, "output_fg.mp4")
+            # 使用 ffmpeg 将 np 数组写成视频文件=
+            vidwrite_from_numpy(bg_vid_path, bg_movie)
+            vidwrite_from_numpy(fg_vid_path, fg_movie)
 
 if __name__ == '__main__':
     main()

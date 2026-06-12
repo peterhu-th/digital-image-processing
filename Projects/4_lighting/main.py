@@ -211,7 +211,6 @@ if __name__ == '__main__':
     IMFNS = ['0024.jpg', '0060.jpg', '0120.jpg', '0205.jpg', '0553.jpg']
     EXPOSURE_TIMES = [1 / 24.0, 1 / 60.0, 1 / 120.0, 1 / 205.0, 1 / 553.0]
     LAMBDA_PARAM = 5
-
     COMP_OBJ_PATH = os.path.join(INPUT_BLENDER_DIR, 'objects.png')
     COMP_EMPTY_PATH = os.path.join(INPUT_BLENDER_DIR, 'empty.png')
     COMP_MASK_PATH = os.path.join(INPUT_BLENDER_DIR, 'mask.png')

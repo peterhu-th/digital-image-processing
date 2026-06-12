@@ -68,7 +68,7 @@ def video2imageFolder(input_file, output_path):
         ret, frame = cap.read()
 
         if not ret:
-            print ("Failed to get the frame {}".format(frameId))
+            print ("Failed to get the frame {}".format(frame_idx))
             continue
 
         out_name = os.path.join(output_path, 'f{:04d}.jpg'.format(frame_idx+1))

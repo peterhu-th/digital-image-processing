@@ -7,6 +7,8 @@ Experiments/*/data/
 Projects/*/pictures/
 Projects/*/images/
 Projects/*/samples/
+Projects/*/resources/
+Projects/*/output/
 
 # cache
 __pycache__/
