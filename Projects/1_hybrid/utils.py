@@ -108,19 +108,19 @@ def align_images(input_img_1, input_img_2, pts_img_1, pts_img_2,
     minw = min(w1, w2)
     brd = (max(w1, w2)-minw)/2
     if minw == w1:  # crop w2
-        im2 = im2[:, ceil(brd):-floor(brd), :]
+        im2 = im2[:, ceil(brd):-floor(brd) if floor(brd) > 0 else None, :]
         tx = tx-ceil(brd)
     else:
-        im1 = im1[:, ceil(brd):-floor(brd), :]
+        im1 = im1[:, ceil(brd):-floor(brd) if floor(brd) > 0 else None, :]
         tx = tx+ceil(brd)
 
     minh = min(h1, h2)
     brd = (max(h1, h2)-minh)/2
     if minh == h1:  # crop w2
-        im2 = im2[ceil(brd):-floor(brd), :, :]
+        im2 = im2[ceil(brd):-floor(brd) if floor(brd) > 0 else None, :, :]
         ty = ty-ceil(brd)
     else:
-        im1 = im1[ceil(brd):-floor(brd), :, :]
+        im1 = im1[ceil(brd):-floor(brd) if floor(brd) > 0 else None, :, :]
         ty = ty+ceil(brd)
 
     im1 = cv2.cvtColor(im1.astype(np.uint8), cv2.COLOR_RGB2BGR)

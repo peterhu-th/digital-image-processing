@@ -43,8 +43,8 @@ def show_fft(image, title, ax):
 
 
 def run_part1():
-    im1_file = 'pictures/nutmeg.jpg'
-    im2_file = 'pictures/DerekPicture.jpg'
+    im1_file = 'pictures/DerekPicture.jpg'
+    im2_file = 'pictures/nutmeg.jpg'
 
     # 读取并归一化图像，提供给交互选点工具
     im1 = np.float32(cv2.imread(im1_file, cv2.IMREAD_GRAYSCALE) / 255.0)
@@ -68,7 +68,7 @@ def run_part1():
 
     # 设置 sigma 并生成混合图像 (请根据实际图片效果微调这两个参数)
     sigma_low = 15
-    sigma_high = 10
+    sigma_high = 5
     im_hybrid, low_pass, high_pass = hybridImage(im1_gray, im2_gray, sigma_low, sigma_high)
 
     # 显示最终生成的混合图像
